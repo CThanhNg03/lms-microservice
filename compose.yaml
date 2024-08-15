@@ -1,0 +1,59 @@
+services:
+  lms-chat:
+    build: ./lms-chat
+    ports: 
+      - "8000:8000"
+    depends_on:
+      - lms-mongo
+      - rmq
+
+  lms-pay:
+    build: ./lms-pay
+    ports: 
+      - "8080:8080"
+    depends_on:
+      - lms-postgres
+      - rmq
+
+  mock:
+    build: ./mock
+    ports:
+      - "8008:8008"
+    depends_on:
+      - rmq
+  
+  rmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+
+  lms-mongo:  
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: lms
+    
+  lms-postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: lms
+
+volumes:
+  mongodb_data:
+    driver: local

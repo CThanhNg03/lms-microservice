@@ -1,0 +1,10 @@
+sqlalchemy[asyncio]
+psycopg2-binary
+python-dotenv
+pydantic
+grpcio-reflection
+asyncio
+asyncpg
+fastapi
+uvicorn[standard]
+aio_pika

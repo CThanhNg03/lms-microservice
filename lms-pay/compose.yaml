@@ -1,0 +1,20 @@
+services:
+  lms-pay:
+    build: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - lms-postgres
+
+  lms-postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: lms
+
+volumes:
+  postgres_data:
+    driver: local
