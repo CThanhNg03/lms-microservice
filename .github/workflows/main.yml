@@ -15,7 +15,7 @@ jobs:
 
       - 
         name: Change directory to /lms-pay
-        run: cd /lms-pay
+        run: cd ../../lms-pay
 
       -
         name: Login to Docker Hub
