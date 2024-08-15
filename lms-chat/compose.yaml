@@ -1,0 +1,28 @@
+version: '2.22'
+
+services:
+  chatapp:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+    
+  mongo:  
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: lms
+
+volumes:
+  mongodb_data:
+    driver: local

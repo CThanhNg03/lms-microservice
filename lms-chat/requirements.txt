@@ -1,0 +1,6 @@
+fastapi
+pika
+motor
+uvicorn[standard]
+aio-pika
+python-multipart
