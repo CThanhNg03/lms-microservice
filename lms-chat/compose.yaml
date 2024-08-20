@@ -1,18 +1,14 @@
 version: '2.22'
 
 services:
-  chatapp:
+  lms-chat:
     build: .
     ports:
       - "8000:8000"
     depends_on:
       - mongo
-    develop:
-      watch:
-        - action: rebuild
-          path: .
     
-  mongo:  
+  lms-mongo:  
     image: mongo
     ports:
       - "27017:27017"

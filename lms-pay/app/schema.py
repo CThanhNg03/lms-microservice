@@ -38,5 +38,5 @@ class PaymentResult(BaseModel):
 class ReportRequest(BaseModel):
     start_date: str
     end_date: str
-    author_id: int
+    author_id: Optional[int] = None
     course_id: List[int] = []

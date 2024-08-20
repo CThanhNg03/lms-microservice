@@ -59,7 +59,7 @@ class RMQServer:
                 logger.debug(f"Response: {response}")
             except Exception as e:
                 logger.error(f"Failed to parse message: {e}")
-                response = {"error": str(e)}
+                response = {"status": False, "message": str(e)}
             
             
             await self.channel.default_exchange.publish(
@@ -87,7 +87,7 @@ class RMQServer:
         for r in result:
             r.pop("_sa_instance_state")
             r["invoice_id"] = str(r["invoice_id"])
-        return result
+        return {"status": True, "data": result}
         pass
     
     async def run(self):

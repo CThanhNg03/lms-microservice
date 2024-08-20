@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 from sqlalchemy import TIMESTAMP, cast, func, select, insert, update
@@ -124,14 +124,15 @@ async def update_invoice_status(*, invoice_id, status):
 async def get_report(*, request: ReportRequest):
     async with session() as db:
         request.start_date = datetime.strptime(request.start_date, "%Y-%m-%d")
-        request.end_date = datetime.strptime(request.end_date, "%Y-%m-%d")
-        stmt = select(InvoiceItem).join(Invoice).where(
+        request.end_date = datetime.strptime(request.end_date, "%Y-%m-%d")+timedelta(days=1)
+        stmt = select(InvoiceItem, Invoice.updated_at).join(Invoice).where(
             Invoice.raise_date.between(
                 request.start_date, 
                 request.end_date),
-            InvoiceItem.author_id == request.author_id,
             Invoice.status == InvoiceStatus.PAID
         )
+        if request.author_id: 
+            stmt = stmt.where(InvoiceItem.author_id == request.author_id)
         if len(request.course_id) > 0:
             stmt = stmt.where(InvoiceItem.course_id.in_(request.course_id))
         result = await db.execute(stmt)
