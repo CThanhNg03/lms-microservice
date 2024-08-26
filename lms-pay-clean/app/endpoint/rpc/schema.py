@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from app.model.invoice import InvoiceStatus
+from app.repositories.orm.invoice import InvoiceStatus
 
 class NewPaymentInfo(BaseModel):
     card_holder: str
@@ -20,7 +20,7 @@ class NewInvoice(BaseModel):
 
 class NewInvoiceItem(BaseModel):
     course_id: int
-    amount: int
+    amount: float
     author_id: int
 
 class InvoiceUpdate(BaseModel):
@@ -30,7 +30,7 @@ class InvoiceUpdate(BaseModel):
 class NewOrder(NewInvoice):
     items: List[NewInvoiceItem]
 
-class PaymentResult(BaseModel):
+class PaymentResponse(BaseModel):
     status: str
     message: str
     data: dict

@@ -1,11 +1,10 @@
 import logging
 import asyncio
-from typing import Annotated
-from fastapi import FastAPI, UploadFile, WebSocket, BackgroundTasks, HTTPException, Depends, WebSocketDisconnect
+from typing import Annotated, List
+from fastapi import FastAPI, UploadFile, WebSocket, HTTPException, Depends, WebSocketDisconnect
 import json
 from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer
-from contextlib import asynccontextmanager
 
 import app.services.crud as crud
 from app.services.rmqclient import rmqClient
@@ -123,7 +122,7 @@ async def get_my_conversations(token: oauthDep):
     return await crud.get_my_conversations(int(user_id))
 
 @app.get("/my_recent_chat")
-async def get_my_recent_chat(token: oauthDep, limit: int = 30):
+async def get_my_recent_chat(token: oauthDep, limit: int = 30) -> List[int]:
     user_id = await rmqClient.get_current_user(token)
     return await crud.get_my_recent_chat(int(user_id), limit) 
 

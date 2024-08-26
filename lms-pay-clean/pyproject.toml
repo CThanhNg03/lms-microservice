@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lms-pay"
+version = "0.1.0"
+description = "Payment service for LMS"
+authors = [
+    { name ="Ng Cao Thanh", email = "cthanhnguyen03@gmail.com" }
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "sqlalchemy[asyncio]",
+    "psycopg2-binary",
+    "python-dotenv",
+    "pydantic",
+    "grpcio-reflection",
+    "asyncio",
+    "asyncpg",
+    "fastapi",
+    "uvicorn[standard]",
+    "aio_pika",
+    "injector",
+]
+
+[tool.setuptools]
+packages = ["app", "alembic"]
