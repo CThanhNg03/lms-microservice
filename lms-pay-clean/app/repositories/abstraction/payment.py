@@ -3,18 +3,19 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.model.invoice import GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceItemModel, InvoiceModel
-from app.model.payment_info import GetPaymentParamsModel, PaymentInfoModel
+from app.model.pagination import PaginationParamsModel, PaginationModel
+from app.model.payment_info import CreatePaymentModel, GetPaymentParamsModel, PaymentInfoModel
+from app.repositories.abstraction.abstract import AbstractRepository
 
 
-class AbstractPaymentRepository(abc.ABC):
-    session: any
+class AbstractPaymentRepository(AbstractRepository):
 
     @abc.abstractmethod
     async def get_invoice(self, id: UUID) -> InvoiceModel | None:
         raise NotImplementedError
     
     @abc.abstractmethod
-    async def list_invoice(self, params: Optional[GetInvoiceParamsModel]) -> List[InvoiceModel]:
+    async def list_invoice(self, params: Optional[GetInvoiceParamsModel], pagin: Optional[PaginationParamsModel]) -> List[InvoiceModel] | PaginationModel[InvoiceModel]:
         raise NotImplementedError
     
     @abc.abstractmethod
@@ -38,7 +39,7 @@ class AbstractPaymentRepository(abc.ABC):
         raise NotImplementedError
     
     @abc.abstractmethod
-    async def list_invoice_item(self, params: GetInvoiceItemParamsModel) -> List[InvoiceItemModel]:
+    async def list_invoice_item(self, params: Optional[GetInvoiceItemParamsModel], pagin: Optional[PaginationParamsModel]) -> List[InvoiceItemModel] | PaginationModel[InvoiceItemModel]:
         raise NotImplementedError
     
     @abc.abstractmethod
@@ -58,7 +59,7 @@ class AbstractPaymentRepository(abc.ABC):
         raise NotImplementedError
     
     @abc.abstractmethod
-    async def create_payment_info(self, payment_info: PaymentInfoModel) -> PaymentInfoModel:
+    async def create_payment_info(self, payment_info: CreatePaymentModel, client_id: int) -> PaymentInfoModel:
         raise NotImplementedError
     
     @abc.abstractmethod
