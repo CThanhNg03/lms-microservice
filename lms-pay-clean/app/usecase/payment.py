@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from app.di.unit_of_work import AbstractUnitOfWork
 from app.model.exception import InvoiceError
-from app.model.invoice import INVOICE_TTL, CreateInvoiceModel, CreateOrderModel, GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceDetailModel, InvoiceItemModel, InvoiceStatus, TransactionModel
+from app.model.invoice import INVOICE_TTL, CreateInvoiceModel, CreateOrderModel, GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceDetailModel, InvoiceItemModel, InvoiceModel, InvoiceStatus, TransactionModel
 from app.model.pagination import PaginationParamsModel
 from app.model.payment_info import CreatePaymentModel, GetPaymentParamsModel, PaymentInfoModel
 from app.repositories.abstraction.payment import AbstractPaymentRepository
@@ -12,6 +12,10 @@ from app.setting.setting import logger
 
 async def make_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], order: CreateOrderModel):
     async with async_unit_of_work as uow:
+        cur_invoice: List[InvoiceModel] = await uow.repo.list_invoice(params=GetInvoiceParamsModel(status=InvoiceStatus.PENDING, client_id=order.client_id), pagin=None)
+        if len(cur_invoice) > 0:
+            for invoice in cur_invoice:
+                await uow.repo.update_invoice_status(invoice.id, "CANCELED")
         if order.payment_method == "credit_card":
             payment = await uow.repo.get_payment_info(GetPaymentParamsModel(
                 client_id=order.client_id,
@@ -45,27 +49,6 @@ async def make_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRep
             amount=total,
             summary=newInvoice.summary
         )
-    
-async def make_transaction(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
-    async with async_unit_of_work as uow:
-        invoice = await uow.repo.get_invoice(invoice_id)
-        if invoice is None:
-            raise Exception("Invoice not found")
-        if invoice.payment_info:
-            payment = await uow.repo.get_payment_info(GetPaymentParamsModel(
-                client_id=invoice.client_id,
-                payment_method=invoice.payment_method
-            ))
-        else:
-            payment = None
-        total = await uow.repo.get_item_total(invoice_id)
-        return TransactionModel(
-            invoice_id=invoice_id,
-            payment_info=payment,
-            payment_method=invoice.payment_method,
-            amount=total,
-            summary=invoice.summary
-        )
 
 async def pay_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
     async with async_unit_of_work as uow:
@@ -73,20 +56,15 @@ async def pay_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepo
 
 async def cancel_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
     async with async_unit_of_work as uow:
-        return (await uow.repo.update_invoice_status(invoice_id, "CANCELLED")).updated_at
+        return (await uow.repo.update_invoice_status(invoice_id, "CANCELED")).updated_at
     
 async def get_report(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], params: GetInvoiceItemParamsModel):
     async with async_unit_of_work as uow:
         params.start_date = datetime.strptime(params.start_date, "%Y-%m-%d")
         params.end_date = datetime.strptime(params.end_date, "%Y-%m-%d")+timedelta(days=1)
         params.status = InvoiceStatus.PAID
-        result = await uow.repo.list_invoice_item(params=params, pagin=None)
-        items = [item.__dict__ for item in result]
-        for item in items:
-            item.pop('_sa_instance_state')
-            item["invoice_id"] = str(item["invoice_id"])
-        return [InvoiceItemModel(**item) for item in items]
-    
+        return await uow.repo.list_invoice_item(params=params, pagin=None)
+        
 async def list_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], *, params: Optional[GetInvoiceParamsModel], pagin: Optional[PaginationParamsModel]):
     async with async_unit_of_work as uow:
         return await uow.repo.list_invoice(params, pagin)
@@ -131,4 +109,4 @@ async def cancel_outdated_invoice(async_unit_of_work: AbstractUnitOfWork[Abstrac
             raise InvoiceError("Invoice not found")
         await asyncio.sleep(INVOICE_TTL * 60)
         if invoice.status == InvoiceStatus.PENDING:
-            await uow.repo.update_invoice_status(invoice_id, "CANCELLED")
+            await uow.repo.update_invoice_status(invoice_id, "CANCELED")

@@ -3,15 +3,18 @@ from typing import List
 import pandas as pd
 
 
-def to_df(data: List[object]):
+def to_df(data: List[object], exclude: List[str] = []):
     if not data:
         return pd.DataFrame()
     df = pd.DataFrame([item.__dict__ for item in data])
     df.drop('_sa_instance_state', axis=1, errors='ignore', inplace=True)
+    for col in exclude:
+        if col in df.columns:
+            df.drop(col, axis=1, inplace=True, errors='ignore')
     return df
 
-def export_to_file(data: List[object], file_type: str):
-    df = to_df(data)
+def export_to_file(data: List[object], file_type: str, exclude: List[str] = []):
+    df = to_df(data, exclude = exclude)
     stream = io.BytesIO()
     if file_type == 'csv':
         mediatype = 'text/csv'

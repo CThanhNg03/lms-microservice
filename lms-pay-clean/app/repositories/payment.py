@@ -3,12 +3,14 @@ from typing import List, Optional
 from uuid import UUID
 from sqlalchemy import delete, func, select, update, insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import defer
 
 from app.common.utils.pagination import paginate
-from app.model.invoice import GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceItemModel, InvoiceModel
+from app.model.invoice import GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceItemModel, InvoiceModel, InvoiceReportModel
 from app.model.pagination import PaginationModel, PaginationParamsModel
 from app.model.payment_info import CreatePaymentModel, GetPaymentParamsModel, PaymentInfoModel
 from app.repositories.abstraction.payment import AbstractPaymentRepository
+from app.repositories.mapper.invoice_item import InvoiceItemOrmMapper
 from app.repositories.orm.invoice import Invoice, InvoiceStatus
 from app.repositories.orm.invoiceitem import InvoiceItem
 from app.repositories.orm.payment_info import PaymentInfo
@@ -26,8 +28,10 @@ class PaymentRepository(AbstractPaymentRepository):
 
     async def list_invoice(self, params: Optional[GetInvoiceParamsModel], pagin: Optional[PaginationParamsModel]) -> List[InvoiceModel] | PaginationModel[InvoiceItem]:
         stmt = select(Invoice)
-        if params:
+        if params.client_id:
             stmt = stmt.where(Invoice.client_id == params.client_id)
+        if params.status:
+            stmt = stmt.where(Invoice.status == params.status)
         if pagin:
             stmt = paginate(stmt, pagin)
             result = await self.session.execute(stmt)
@@ -56,14 +60,14 @@ class PaymentRepository(AbstractPaymentRepository):
         result = await self.session.execute(stmt)
         return result.scalar().asDataClass()
     
-    async def list_invoice_item(self, params: GetInvoiceItemParamsModel, pagin: Optional[PaginationParamsModel]) -> List[InvoiceItemModel] | PaginationModel[InvoiceItemModel]:
+    async def list_invoice_item(self, params: GetInvoiceItemParamsModel, pagin: Optional[PaginationParamsModel]) -> List[InvoiceReportModel] | PaginationModel[InvoiceItemModel]:
         stmt = select(InvoiceItem, Invoice.updated_at).join(Invoice)
         if params.start_date and params.end_date:
             stmt = stmt.where(Invoice.updated_at.between(params.start_date, params.end_date))
         if params.status:
             stmt = stmt.where(Invoice.status == params.status)
         if params.author_id:
-            stmt = stmt.where(InvoiceItem.author_id.in_(params.author_id))
+            stmt = stmt.where(InvoiceItem.author_id == params.author_id)
         if params.course_id:
             stmt = stmt.where(InvoiceItem.course_id.in_(params.course_id))
         if params.invoice_id:
@@ -71,16 +75,17 @@ class PaymentRepository(AbstractPaymentRepository):
         if pagin:
             pagination = paginate(stmt, pagin)
             result = await self.session.execute(pagination)
-            items = result.scalars().all()
+            items = [InvoiceItemOrmMapper.to_domain(item) for item in result.scalars().all()]
             count_stmt = select(func.count('*')).select_from(stmt)
             count = await self.session.execute(count_stmt)
             return PaginationModel[InvoiceItemModel](items=items, total=count.scalar(), **pagin.__dict__)
         result = await self.session.execute(stmt)
-        return [item.asDataClass() for item in result.scalars().all()]
+        res = result.all()
+        return [InvoiceItemOrmMapper.to_report_domain(item) for item in res]
     
     async def update_invoice_status(self, id: UUID, status: str) -> InvoiceModel:
-        status = InvoiceStatus.PAID if status == 'PAID' else InvoiceStatus.CANCELED
-        stmt = update(Invoice).where(Invoice.id == id).values(status=status).returning(Invoice)
+        update_status = InvoiceStatus[status]
+        stmt = update(Invoice).where(Invoice.id == id).values(status=update_status).returning(Invoice)
         result = await self.session.execute(stmt)
         return result.scalar().asDataClass()
     

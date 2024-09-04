@@ -2,7 +2,7 @@ import abc
 from typing import List, Optional
 from uuid import UUID
 
-from app.model.invoice import GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceItemModel, InvoiceModel
+from app.model.invoice import GetInvoiceItemParamsModel, GetInvoiceParamsModel, InvoiceItemModel, InvoiceModel, InvoiceReportModel
 from app.model.pagination import PaginationParamsModel, PaginationModel
 from app.model.payment_info import CreatePaymentModel, GetPaymentParamsModel, PaymentInfoModel
 from app.repositories.abstraction.abstract import AbstractRepository
@@ -39,7 +39,7 @@ class AbstractPaymentRepository(AbstractRepository):
         raise NotImplementedError
     
     @abc.abstractmethod
-    async def list_invoice_item(self, params: Optional[GetInvoiceItemParamsModel], pagin: Optional[PaginationParamsModel]) -> List[InvoiceItemModel] | PaginationModel[InvoiceItemModel]:
+    async def list_invoice_item(self, params: Optional[GetInvoiceItemParamsModel], pagin: Optional[PaginationParamsModel]) -> List[InvoiceReportModel] | PaginationModel[InvoiceItemModel]:
         raise NotImplementedError
     
     @abc.abstractmethod

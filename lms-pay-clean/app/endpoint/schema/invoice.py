@@ -94,6 +94,12 @@ class InvoiceItemResponse(NewInvoiceItem):
     class Config:   
         from_attributes = True
 
+class InvoiceItemReportResponse(InvoiceItemResponse):
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class InvoiceDetailResponse(InvoiceResponse):
     items: List[InvoiceItemResponse]
 

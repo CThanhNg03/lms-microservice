@@ -35,8 +35,14 @@ class InvoiceItemModel:
     course_name: str
 
 @dataclass
+class InvoiceReportModel(InvoiceItemModel):
+    updated_at: datetime
+
+
+@dataclass
 class GetInvoiceParamsModel:
     client_id: Optional[int]
+    status: Optional[InvoiceStatus]
 
 @dataclass
 class GetInvoiceItemParamsModel:
