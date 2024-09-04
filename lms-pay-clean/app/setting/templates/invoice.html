@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Reset styles for email clients */
+    body, table, td, a {
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    table, td {
+      mso-table-rspace: 0pt;
+      mso-table-lspace: 0pt;
+    }
+    img {
+      -ms-interpolation-mode: bicubic;
+    }
+    /* Remove extra spacing between tables */
+    table {
+      border-collapse: collapse !important;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    /* General Styles */
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f1f1f1;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #313131;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .invoice {
+      background-color: #ffffff;
+      padding: 16px;
+      border-radius: 4px;
+    }
+    .invoice p {
+      margin-bottom: 20px;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #313131;
+      margin: 0 0 20px 0;
+    }
+    .order-info {
+      margin-bottom: 32px;
+    }
+    .order-info header {
+      color: #b2b2b2;
+      border-bottom: 2px solid #c0c0c0;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .order-info-content {
+      width: 100%;
+    }
+    .order-info-content-item {
+      width: 50%;
+      margin-bottom: 16px;
+    }
+    .order-info-content-item span {
+      display: block;
+    }
+    .order-info-content-item span:first-child {
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #f2f2f2;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    tr:last-child td {
+      text-align: right;
+      font-weight: bold;
+      color: #b2b2b2;
+      padding-right: 16px;
+    }
+    tr:last-child td span {
+      color: #313131;
+      padding-left: 8px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 14px;
+      color: #b2b2b2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="logo">LMS</h1>
+      <h1 class="title">Thank you.</h1>
+    </div>
+    <div class="invoice">
+      <p>Thanks for your purchase from LMS</p>
+      <h1 class="title">Invoice #{{ invoice.invoice_id }}</h1>
+
+      <div class="order-info">
+        <header>Your order information:</header>
+        <div class="order-info-content">
+			<div class="order-info-content-col">
+				<div class="order-info-content-item">
+					<span>Order ID:</span>
+					<span>{{ invoice.invoice_id }}</span>
+				</div>
+				<div class="order-info-content-item">
+					<span>Order Date:</span>
+					<span>{{ invoice.raise_date }}</span>
+				</div>
+			</div>
+			<div class="order-info-content-col">
+				<div class="order-info-content-item">
+					<span>To:</span>
+					<span>{{ invoice.client_email }}</span>
+				</div>
+				<div class="order-info-content-item">
+					<span>From:</span>
+					<span>LMS</span>
+				</div>
+			</div>
+        </div>
+      </div>
+
+      <div class="order-info">
+        <header>Order details:</header>
+        <table>
+          <thead>
+            <tr>
+              <th>ID:</th>
+              <th>Course:</th>
+              <th>Price:</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in invoice.items %}
+            <tr>
+              <td>{{ item.course_id }}</td>
+              <td>{{ item.course_name }}</td>
+              <td>${{ item.amount }} </td>
+            </tr>
+            {% endfor %}
+            <tr>
+              <td colspan="3">
+                Total: <span>${{ invoice.total }} $</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="order-info">
+        <header>Payment details:</header>
+        <div class="order-info-content">
+          <div class="order-info-content-item">
+            <span>Payment Method:</span>
+            <span>{{ invoice.payment_method }}</span>
+          </div>
+          <div class="order-info-content-item">
+            <span>Payment From:</span>
+            <span>{{ invoice.payment_info.card_holder }}</span>
+          </div>
+          <div class="order-info-content-item">
+            <span>Payment Date:</span>
+            <span>{{ invoice.updated_at }}</span>
+          </div>
+          <div class="order-info-content-item">
+            <span>Payment Amount:</span>
+            <span>{{ invoice.total }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>For any questions, please contact us at <a href="mailto:support.help@lms.com">support.help@lms.com</a></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,29 +1,30 @@
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from re import T
 from typing import List, Optional
 from uuid import UUID
 
 from app.model.payment_info import CreatePaymentModel, PaymentInfoModel
 
+# Invoice expiration time (in minutes)
+INVOICE_TTL = 60
 
 @dataclass
 class InvoiceModel:
-    id: str
+    id: UUID
     client_id: int 
     raise_date: datetime
     updated_at: datetime
+    client_email: str
     summary: str
     payment_method: str 
     payment_info: int 
     status: Enum
 
-@dataclass
 class InvoiceStatus(Enum):
     PENDING = 1
     PAID = 2
-    CANCELLED = 3
+    CANCELED = 3
     
 @dataclass
 class InvoiceItemModel:
@@ -31,21 +32,26 @@ class InvoiceItemModel:
     course_id: int
     author_id: int
     amount: float
+    course_name: str
+
+@dataclass
+class InvoiceReportModel(InvoiceItemModel):
+    updated_at: datetime
+
 
 @dataclass
 class GetInvoiceParamsModel:
-    page: int = 1
-    size: Optional[int] = 10
-    client_id: Optional[int] = None
+    client_id: Optional[int]
+    status: Optional[InvoiceStatus]
 
 @dataclass
 class GetInvoiceItemParamsModel:
-    start_date: datetime
-    end_date: datetime
-    page: int = None
-    size: Optional[int] = 10
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
     author_id: Optional[List[int]] = None
     course_id: Optional[List[int]] = None
+    invoice_id: Optional[UUID] = None
+    status: Optional[InvoiceStatus] = None
 
 @dataclass
 class CreateInvoiceModel:
@@ -54,12 +60,14 @@ class CreateInvoiceModel:
     payment_method: str
     payment_info: Optional[CreatePaymentModel]
     raise_date: datetime
+    client_email: str
 
 @dataclass
 class CreateInvoiceItemModel:
     course_id: int
     author_id: int
-    amount: int
+    amount: float
+    course_name: str
 
 @dataclass
 class CreateOrderModel(CreateInvoiceModel):
@@ -68,8 +76,16 @@ class CreateOrderModel(CreateInvoiceModel):
 @dataclass
 class TransactionModel:
     invoice: UUID
-    amount: int
+    amount: float
     summary: str
     payment_method: str
     payment_info: Optional[PaymentInfoModel]
+
+@dataclass
+class InvoiceDetailModel(CreateOrderModel):
+    invoice_id: UUID
+    total: float
+    updated_at: datetime
+
+
 

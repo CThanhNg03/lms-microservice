@@ -19,10 +19,17 @@ dependencies = [
     "grpcio-reflection",
     "asyncio",
     "asyncpg",
-    "fastapi",
     "uvicorn[standard]",
+    "fastapi",
+    "passlib[bcrypt]",
+    "bcrypt==3.2.0",
+    "pyjwt",
     "aio_pika",
     "injector",
+    "fastapi_mail",
+    "python-multipart",
+    "pandas",
+    "openpyxl",
 ]
 
 [tool.setuptools]

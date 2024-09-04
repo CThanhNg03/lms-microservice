@@ -24,8 +24,8 @@ class RMQService:
                 self.connection = await connect(settings.RMQ_URL)
                 self.channel = await self.connection.channel()
                 queue = await self.channel.declare_queue(queue_name)
-
                 await queue.consume(self.queues[queue_name])
+                logger.info(f"Application consume on queue: {queue_name}")
                 return self
             except (AMQPConnectionError, ConnectionRefusedError) as e:
                 logger.error(f"Failed to connect to RabbitMQ: {e}")
@@ -57,7 +57,7 @@ class RMQService:
         async def process_message(message: AbstractIncomingMessage):
             async with message.process():
                 data = json.loads(message.body)
-                logger.debug(f"Received message: {data}")
+                logger.info(f"Received message on queue {queue_name}: {data}")
                 try:
                     request_type = func.__annotations__["body"]
                     message.body = request_type(**data)
@@ -76,6 +76,8 @@ class RMQService:
                     ),
                     routing_key=message.reply_to
                 )
+                status = "Success" if response["status"] else "Failed"
+                logger.info(f"Response for queue: {queue_name} - {status}")
 
         return self._wrap_func(func, process_message, queue_name)
     
@@ -85,7 +87,6 @@ class RMQService:
         for queue in self.queues:
             task = loop.create_task(self.connect(queue))
             tasks.append(task)
-        logger.info(f"")
         await asyncio.gather(*tasks)
 
     async def close(self):

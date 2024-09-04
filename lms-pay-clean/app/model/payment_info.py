@@ -16,7 +16,7 @@ class PaymentInfoModel:
 @dataclass
 class GetPaymentParamsModel:
     client_id: int
-    card_number: Optional[str] = None
+    card_number: Optional[str]
 
 @dataclass
 class CreatePaymentModel:

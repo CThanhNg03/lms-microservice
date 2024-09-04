@@ -2,13 +2,13 @@ import abc
 from typing import Generic, TypeVar
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.repositories.abstraction.abstract import AbstractRepository
 from app.repositories.abstraction.payment import AbstractPaymentRepository
-from app.repositories.payment import PaymentRepository
 
 T = TypeVar("T", bound=AbstractPaymentRepository)
 
 class AbstractUnitOfWork(Generic[T], abc.ABC):
-    repo: AbstractPaymentRepository
+    repo: T
 
     def __init__(self, repo: T):
         self.repo = repo
@@ -21,8 +21,8 @@ class AbstractUnitOfWork(Generic[T], abc.ABC):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         raise NotImplementedError
     
-class SQLUnitOfWork(AbstractUnitOfWork[PaymentRepository]):
-    def __init__(self, repo: PaymentRepository, session: AsyncSession):
+class SQLUnitOfWork(AbstractUnitOfWork[T]):
+    def __init__(self, repo: T, session: AsyncSession):
         super().__init__(repo)
         self.session = session
 
