@@ -11,6 +11,14 @@ from app.repositories.abstraction.payment import AbstractPaymentRepository
 from app.setting.setting import logger
 
 async def make_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], order: CreateOrderModel):
+    """
+    Create an invoice based on the given order.
+    Args:
+        async_unit_of_work: The unit of work for accessing the payment repository.
+        order: The order information.
+    Returns:
+        TransactionModel: The transaction information including the invoice ID, payment information (if applicable), payment method, amount to charge, and invoice summary.
+    """
     async with async_unit_of_work as uow:
         cur_invoice: List[InvoiceModel] = await uow.repo.list_invoice(params=GetInvoiceParamsModel(status=InvoiceStatus.PENDING, client_id=order.client_id), pagin=None)
         if len(cur_invoice) > 0:
@@ -51,14 +59,39 @@ async def make_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRep
         )
 
 async def pay_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
+    """
+    Update the status of the invoice to PAID.
+    Args:
+        async_unit_of_work: The unit of work for accessing the payment repository.
+        invoice_id: The ID of the invoice to update.
+        
+    Returns:
+        datetime: The updated timestamp of the invoice.
+    """
     async with async_unit_of_work as uow:
         return (await uow.repo.update_invoice_status(invoice_id, "PAID")).updated_at
 
 async def cancel_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
+    """
+    Update the status of the invoice to CANCELED.
+    Args:
+        async_unit_of_work: The unit of work for accessing the payment repository.
+        invoice_id: The ID of the invoice to update.
+    Returns:
+        datetime: The updated timestamp of the invoice.
+    """
     async with async_unit_of_work as uow:
         return (await uow.repo.update_invoice_status(invoice_id, "CANCELED")).updated_at
     
 async def get_report(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], params: GetInvoiceItemParamsModel):
+    """
+    Get a report of the paid items based on the given parameters.
+    Args:
+        async_unit_of_work: The unit of work for accessing the payment repository.
+        params: The parameters for filtering the invoices.
+    Returns:
+        List[InvoiceItemModel]: The list of invoices that match the given parameters.
+    """
     async with async_unit_of_work as uow:
         params.start_date = datetime.strptime(params.start_date, "%Y-%m-%d")
         params.end_date = datetime.strptime(params.end_date, "%Y-%m-%d")+timedelta(days=1)
@@ -66,10 +99,27 @@ async def get_report(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepos
         return await uow.repo.list_invoice_item(params=params, pagin=None)
         
 async def list_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], *, params: Optional[GetInvoiceParamsModel], pagin: Optional[PaginationParamsModel]):
+    """
+    List invoices based on the provided parameters.
+    Args:
+        async_unit_of_work: The async unit of work for accessing the payment repository.
+        params: Optional parameters for filtering the invoices.
+        pagin: Optional parameters for pagination.
+    Returns:
+        A list or a paginated list of invoices matching the provided parameters.
+    """
     async with async_unit_of_work as uow:
         return await uow.repo.list_invoice(params, pagin)
     
 async def get_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
+    """
+    Get the details of an invoice.
+    Args:
+        async_unit_of_work: The async unit of work for accessing the payment repository.
+        invoice_id: The ID of the invoice to retrieve.
+    Returns:
+        InvoiceDetailModel: The details of the invoice.
+    """
     async with async_unit_of_work as uow:
         invoice = await uow.repo.get_invoice(invoice_id)
         if invoice is None:
@@ -99,10 +149,25 @@ async def get_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepo
         ), invoice.status
     
 async def list_invoice_item(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], params: Optional[GetInvoiceItemParamsModel], pagin: Optional[PaginationParamsModel]):
+    """
+    List invoice items based on the provided parameters.
+    Args:
+        async_unit_of_work: The async unit of work for accessing the payment repository.
+        params: Optional parameters for filtering the invoice items.
+        pagin: Optional parameters for pagination.
+    Returns:
+        A list or a paginated list of invoice items matching the provided parameters.
+        """
     async with async_unit_of_work as uow:
         return await uow.repo.list_invoice_item(params, pagin)
     
 async def cancel_outdated_invoice(async_unit_of_work: AbstractUnitOfWork[AbstractPaymentRepository], invoice_id):
+    """
+    Cancel an outdated unpaid invoice.
+    Args:
+        async_unit_of_work: The async unit of work for accessing the payment repository.
+        invoice_id: The ID of the invoice to cancel.
+    """
     async with async_unit_of_work as uow:
         invoice = await uow.repo.get_invoice(invoice_id)
         if invoice is None:

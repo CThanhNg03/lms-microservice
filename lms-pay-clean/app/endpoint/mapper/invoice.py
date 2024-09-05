@@ -8,7 +8,9 @@ from app.model.payment_info import CreatePaymentModel
 
 
 class InvoiceRequestMapper:
-
+    """
+    This class is responsible for mapping the request data to the model data.
+    """
     @classmethod
     def create_payment(cls, payment_info: NewPaymentInfo) -> CreatePaymentModel:
         return CreatePaymentModel(
@@ -59,7 +61,9 @@ class InvoiceRequestMapper:
         return PaginationParamsModel(**pagin)
     
 class InvoiceResponseMapper:
-
+    """
+    This class is responsible for mapping the model data to the response data.
+    """
     @classmethod
     def to_item_response(cls, item: InvoiceItemModel, invoice=None) -> InvoiceItemResponse:
         return InvoiceItemResponse(

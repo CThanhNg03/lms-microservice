@@ -9,6 +9,9 @@ import asyncio
 from app.setting.setting import logger, settings
 
 class RMQService:
+    """
+    A class to manage the RabbitMQ service as RPC server's route.
+    """
     queues = dict()
     
     def __init__(self, retry: int=5, delay: int=5):
@@ -52,6 +55,11 @@ class RMQService:
         return decorate
     
     def rpc(self, func: Callable=None, *, queue_name=None):
+        """
+        Decorator to create a callback queue.
+        Args:
+            queue_name: The name of the queue.
+        """
         if func is None:
             return lambda f: self.rpc(f, queue_name=queue_name)
         async def process_message(message: AbstractIncomingMessage):
@@ -63,7 +71,7 @@ class RMQService:
                     message.body = request_type(**data)
                     response = await func(message.body)
                 except Exception as e:
-                    logger.error(f"Failed to parse message: {e}")
+                    logger.error(f"Failed to process queue {queue_name}: {e}")
                     response = {
                         "status": False,
                         "message": str(e)
@@ -93,6 +101,9 @@ class RMQService:
         await self.connection.close()
 
 class RMQApp:
+    """
+    A class to manage RMQService instances.
+    """
     def __init__(self):
         self.services: List[RMQService] = []
 

@@ -3,7 +3,9 @@ from app.repositories.orm.invoiceitem import InvoiceItem
 
 
 class InvoiceItemOrmMapper:
-
+    """
+    This class is responsible for mapping the ORM data to the model data and vice versa of table *invoice_item*.
+    """
     @staticmethod
     def to_domain(item: InvoiceItem) -> InvoiceItemModel:
         return InvoiceItemModel(

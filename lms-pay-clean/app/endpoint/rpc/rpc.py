@@ -16,6 +16,13 @@ rabbit = RMQService()
 
 @rabbit.rpc(queue_name="order")
 async def order(body: NewOrder):
+    """
+    Make an invoice based on the given order. Process the payment and send the invoice to the client. If the payment is successful, update the invoice status to PAID.
+    Args:
+        body: The order information.
+    Returns:
+        dict: The result of the payment process.
+    """
     async_uow = payment_injector.get(AbstractUnitOfWork)
     # order_data = CreateOrderModel(**body.model_dump())
     order_data = InvoiceRequestMapper.create_order(body)
@@ -30,6 +37,13 @@ async def order(body: NewOrder):
 
 @rabbit.rpc(queue_name="report")
 async def report(body: ReportRequest):
+    """
+    Get the paid items based on the given report request.
+    Args:
+        body: The report request.
+    Returns:    
+        dict: The list of paid items.
+    """
     async_uow = payment_injector.get(AbstractUnitOfWork)
     report_data = InvoiceRequestMapper.get_items_params(body)
     result = await payment_uc.get_report(async_uow, report_data)
