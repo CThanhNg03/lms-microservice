@@ -1,8 +1,9 @@
 from app.model.invoice import InvoiceModel
+from app.repositories.mapper.base import BaseOrmMapper
 from app.repositories.orm.invoice import Invoice
 
 
-class InvoiceOrmMapper:
+class InvoiceOrmMapper(BaseOrmMapper):
     """
     This class is responsible for mapping the ORM data to the model data and vice versa of table *invoice*.
     """

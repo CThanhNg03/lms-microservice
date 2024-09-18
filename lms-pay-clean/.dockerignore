@@ -1,1 +1,8 @@
 .venv/
+
+lms_pay.egg-info/
+
+.gitignore
+
+
+

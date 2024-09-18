@@ -1,8 +1,9 @@
 from app.model.invoice import InvoiceItemModel, InvoiceReportModel
+from app.repositories.mapper.base import BaseOrmMapper
 from app.repositories.orm.invoiceitem import InvoiceItem
 
 
-class InvoiceItemOrmMapper:
+class InvoiceItemOrmMapper(BaseOrmMapper):
     """
     This class is responsible for mapping the ORM data to the model data and vice versa of table *invoice_item*.
     """
@@ -28,6 +29,8 @@ class InvoiceItemOrmMapper:
     
     @staticmethod
     def to_report_domain(data) -> InvoiceReportModel:
+        if not data:
+            return None
         item = data[0]
         return InvoiceReportModel(
             invoice_id=item.invoice_id,
